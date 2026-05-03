@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Click Store - Pagamentos</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --cyan: #00BFFF;
+    --cyan2: #00E5FF;
+    --bg: #0a0a0a;
+    --card: #111214;
+    --card2: #16181c;
+    --borda: #1e2128;
+    --borda-cyan: rgba(0,191,255,0.35);
+    --texto: #e8eaf0;
+    --muted: #9ba3af;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .page { width: 100%; max-width: 440px; }
+
+  /* TELA 1 - FORM */
+  #telaForm { display: block; }
+  #telaLoader { display: none; }
+  #telaPix { display: none; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--borda);
+    border-radius: 4px;
+    padding: 2rem;
+  }
+
+  .header { text-align: center; margin-bottom: 2rem; }
+  .logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0,191,255,0.4);
+  }
+  .subtitulo {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: #b0b8c4;
+    margin-top: 4px;
+  }
+
+  .field-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #b0b8c4;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .valor-box {
+    background: var(--card2);
+    border: 1px solid var(--borda-cyan);
+    border-radius: 4px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .rs {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--cyan);
+  }
+  #valor {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--texto);
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+  #valor::-webkit-outer-spin-button,
+  #valor::-webkit-inner-spin-button { -webkit-appearance: none; }
+  #valor::placeholder { color: #333; }
+
+  .btn-gerar {
+    width: 100%;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--borda-cyan);
+    border-radius: 4px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-gerar:hover {
+    background: rgba(0,191,255,0.08);
+    box-shadow: 0 0 16px rgba(0,191,255,0.15);
+  }
+  .btn-gerar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .erro {
+    background: rgba(220,38,38,0.1);
+    border: 1px solid rgba(220,38,38,0.3);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #f87171;
+    margin-bottom: 14px;
+    display: none;
+  }
+
+  .como {
+    margin-top: 1.5rem;
+    border-left: 3px solid var(--cyan);
+    padding-left: 1rem;
+  }
+  .como h3 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 12px;
+  }
+  .como li {
+    list-style: none;
+    font-size: 13px;
+    color: #9ba3af;
+    padding: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .como li::before {
+    content: "→";
+    color: var(--cyan);
+    font-size: 12px;
+  }
+
+  /* LOADER */
+  .loader-wrap {
+    text-align: center;
+    padding: 3rem 0;
+  }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 3px solid var(--borda);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-wrap p { font-size: 14px; color: #b0b8c4; letter-spacing: 0.1em; }
+
+  /* TELA PIX */
+  .pix-header { text-align: center; margin-bottom: 1.5rem; }
+  .pix-titulo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .timer-bar {
+    background: var(--card2);
+    border: 1px solid rgba(255,193,7,0.3);
+    border-radius: 4px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: #FFC107;
+  }
+  .timer-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #FFC107;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .valor-destaque {
+    background: var(--card2);
+    border: 1px solid var(--borda-cyan);
+    border-radius: 4px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .valor-destaque .vl { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: #b0b8c4; margin-bottom: 6px; }
+  .valor-destaque .vn {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--cyan);
+    text-shadow: 0 0 20px rgba(0,191,255,0.3);
+  }
+
+  .qr-centro { display: flex; justify-content: center; margin-bottom: 16px; }
+  .qr-centro img {
+    width: 180px; height: 180px;
+    border: 3px solid var(--borda-cyan);
+    border-radius: 4px;
+    padding: 6px;
+    background: #fff;
+  }
+
+  .copy-label {
+    font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: #b0b8c4; margin-bottom: 8px; display: block;
+  }
+  .copy-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: stretch;
+  }
+  .code-box {
+    flex: 1;
+    background: var(--card2);
+    border: 1px solid var(--borda);
+    border-radius: 4px;
+    padding: 10px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #9ba3af;
+    word-break: break-all;
+    line-height: 1.6;
+    max-height: 70px;
+    overflow: hidden;
+  }
+  .btn-copiar {
+    padding: 0 18px;
+    background: transparent;
+    border: 1px solid var(--borda-cyan);
+    border-radius: 4px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .btn-copiar:hover { background: rgba(0,191,255,0.08); }
+  .btn-copiar.copiado { background: rgba(0,191,255,0.15); }
+
+  .como-pagar {
+    border-left: 3px solid var(--cyan);
+    padding-left: 1rem;
+    margin-top: 4px;
+  }
+  .como-pagar h4 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px; font-weight: 600;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 10px;
+  }
+  .como-pagar ol { padding-left: 16px; }
+  .como-pagar li { font-size: 13px; color: #9ba3af; padding: 4px 0; line-height: 1.5; }
+  .como-pagar li span { color: var(--cyan); font-weight: 500; }
+
+  .btn-novo {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: none;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    margin-top: 14px;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+  .btn-novo:hover { color: var(--texto); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- TELA 1: FORMULÁRIO -->
+  <div id="telaForm" class="card">
+    <div class="header">
+      <div class="logo">Click Store</div>
+      <div class="subtitulo">Sistema de Pagamentos</div>
+    </div>
+
+    <span class="field-label">Valor a Pagar</span>
+    <div class="valor-box">
+      <span class="rs">R$</span>
+      <input type="number" id="valor" placeholder="0,00" min="0.01" step="0.01" autofocus />
+    </div>
+
+    <div class="erro" id="erro"></div>
+    <button class="btn-gerar" id="btnGerar" onclick="gerarPix()">Gerar PIX</button>
+
+    <div class="como">
+      <h3>Como Funciona?</h3>
+      <ul>
+        <li>Digite o valor que deseja pagar</li>
+        <li>Clique em "Gerar PIX"</li>
+        <li>Escaneie o QR Code ou copie o código</li>
+        <li>Confirme o pagamento no seu banco</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- TELA 2: LOADER -->
+  <div id="telaLoader" class="card">
+    <div class="loader-wrap">
+      <div class="spinner"></div>
+      <p>Gerando seu PIX...</p>
+    </div>
+  </div>
+
+  <!-- TELA 3: PIX GERADO -->
+  <div id="telaPix" class="card">
+    <div class="pix-header">
+      <div class="pix-titulo">📱 Escaneie o QR Code</div>
+    </div>
+
+    <div class="timer-bar">
+      <div class="timer-dot"></div>
+      <span>Aguardando pagamento...</span>
+      <span id="timer" style="margin-left:auto;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;">5:00</span>
+    </div>
+
+    <div class="valor-destaque">
+      <div class="vl">Valor a Pagar</div>
+      <div class="vn" id="rValor"></div>
+    </div>
+
+    <div class="qr-centro">
+      <img id="qrImg" src="" alt="QR Code PIX" />
+    </div>
+
+    <span class="copy-label">Ou Copie o Código PIX:</span>
+    <div class="copy-row">
+      <div class="code-box" id="copyPaste"></div>
+      <button class="btn-copiar" id="btnCopiar" onclick="copiar()">Copiar</button>
+    </div>
+
+    <div class="como-pagar">
+      <h4>Como pagar:</h4>
+      <ol>
+        <li>Abra o aplicativo do seu banco</li>
+        <li>Escolha a opção <span>PIX</span></li>
+        <li>Escaneie o QR Code ou cole o código</li>
+        <li>Confirme o pagamento</li>
+        <li>Aguarde a confirmação automática</li>
+      </ol>
+    </div>
+
+    <button class="btn-novo" onclick="novo()">← Gerar novo pagamento</button>
+  </div>
+
+</div>
+
+<script>
+let timerInterval = null;
+
+function uid() {
+  return "pix-" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
+}
+
+async function gerarPix() {
+  const val = parseFloat(document.getElementById("valor").value);
+  const erroEl = document.getElementById("erro");
+  erroEl.style.display = "none";
+
+  if (!val || val <= 0) {
+    erroEl.textContent = "Informe um valor válido.";
+    erroEl.style.display = "block";
+    return;
+  }
+
+  document.getElementById("btnGerar").disabled = true;
+  document.getElementById("telaForm").style.display = "none";
+  document.getElementById("telaLoader").style.display = "block";
+  document.getElementById("telaPix").style.display = "none";
+
+  try {
+    const resp = await fetch("http://localhost:3000/gerar-pix", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount: val })
+    });
+
+    const json = await resp.json();
+
+    if (!resp.ok || !json.data) {
+      throw new Error(json.message || json.error || "Erro ao gerar PIX.");
+    }
+
+    const d = json.data;
+    document.getElementById("rValor").textContent =
+      val.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    document.getElementById("copyPaste").textContent = d.copyPaste || "";
+    document.getElementById("qrImg").src = d.qrCodeBase64 || d.qrcodeUrl || "";
+    document.getElementById("btnCopiar").textContent = "Copiar";
+    document.getElementById("btnCopiar").classList.remove("copiado");
+
+    iniciarTimer(300);
+
+    document.getElementById("telaLoader").style.display = "none";
+    document.getElementById("telaPix").style.display = "block";
+
+  } catch (e) {
+    document.getElementById("telaLoader").style.display = "none";
+    document.getElementById("telaForm").style.display = "block";
+    erroEl.textContent = e.message || "Erro de conexão.";
+    erroEl.style.display = "block";
+    document.getElementById("btnGerar").disabled = false;
+  }
+}
+
+function iniciarTimer(segundos) {
+  if (timerInterval) clearInterval(timerInterval);
+  let restante = segundos;
+  const el = document.getElementById("timer");
+  function atualizar() {
+    const m = Math.floor(restante / 60);
+    const s = restante % 60;
+    el.textContent = m + ":" + String(s).padStart(2, "0");
+    if (restante <= 0) { clearInterval(timerInterval); el.textContent = "Expirado"; }
+    restante--;
+  }
+  atualizar();
+  timerInterval = setInterval(atualizar, 1000);
+}
+
+async function copiar() {
+  const code = document.getElementById("copyPaste").textContent;
+  try {
+    await navigator.clipboard.writeText(code);
+    const btn = document.getElementById("btnCopiar");
+    btn.textContent = "Copiado!";
+    btn.classList.add("copiado");
+    setTimeout(() => { btn.textContent = "Copiar"; btn.classList.remove("copiado"); }, 2500);
+  } catch {
+    const box = document.getElementById("copyPaste");
+    const range = document.createRange();
+    range.selectNodeContents(box);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  }
+}
+
+function novo() {
+  if (timerInterval) clearInterval(timerInterval);
+  document.getElementById("telaPix").style.display = "none";
+  document.getElementById("telaForm").style.display = "block";
+  document.getElementById("valor").value = "";
+  document.getElementById("erro").style.display = "none";
+  document.getElementById("btnGerar").disabled = false;
+  document.getElementById("valor").focus();
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && document.getElementById("telaForm").style.display !== "none") gerarPix();
+});
+</script>
+</body>
+</html>
