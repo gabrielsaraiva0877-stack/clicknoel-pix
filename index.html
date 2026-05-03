@@ -412,7 +412,7 @@ async function gerarPix() {
   document.getElementById("telaPix").style.display = "none";
 
   try {
-    const resp = await fetch("http://localhost:3000/gerar-pix", {
+    const resp = await fetch("https://clicknoel-pix-production.up.railway.app/gerar-pix", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ amount: val })
